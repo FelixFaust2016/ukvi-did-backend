@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "typeRoots": [
+      "./node_modules/@types", // Ensure Hardhat's types are recognized
+      "./node_modules/@nomiclabs/hardhat-ethers/types"
+    ],
+    "types": ["node"]
+  },
+  "include": [
+    "src/**/*", // Include all files inside the src directory
+    "src/scripts/**/*", // Include scripts folder for Hardhat deployment scripts
+    "src/test/**/*", // Include test folder for Hardhat contract tests
+    "typechain/**/*", // Include Typechain types if you're using them
+    "src/scripts",
+    "typechain-types"
+  ],
+  "files": ["./hardhat.config.ts"],
+  "exclude": ["node_modules"]
+}
