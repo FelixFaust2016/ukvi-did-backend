@@ -2,17 +2,25 @@
 pragma solidity ^0.8.19;
 
 contract VisaCredentialRegistry {
-    struct Credential {
-        bytes32 credentialHash;
-        string visaID;
-        string validUntil;
-        string applicantDID;
-        string issuerDID;
-        bool issued;
+    struct Proof {
+        string signature;
+        string issuedAt;
+        string expiresAt;
     }
 
-    mapping(bytes32 => Credential) public credentials;
-    bytes32[] public credentialHashes; 
+    struct Credential {
+        string txHash;
+        string issuerDID;
+        string holderDID;
+        string vcHash;
+        Proof proof;
+        string ipfsCID;
+        string status; // "unclaimed", "claimed", "revoked"
+    }
+
+    mapping(string => Credential) private credentials; // Mapping vcHash -> Credential
+    string[] private credentialHashes; // Store all issued credential hashes
+
     address public issuer;
 
     modifier onlyIssuer() {
@@ -24,40 +32,76 @@ contract VisaCredentialRegistry {
         issuer = msg.sender;
     }
 
+    // Issue a new credential
     function issueCredential(
-        bytes32 credentialHash,
-        string memory visaID,
-        string memory validUntil,
-        string memory issuerDID
+        string memory txHash,
+        string memory vcHash,
+        string memory signature,
+        string memory issuedAt,
+        string memory expiresAt,
+        string memory ipfsCID
     ) public onlyIssuer {
-        require(!credentials[credentialHash].issued, "Credential already exists");
+        require(bytes(credentials[vcHash].vcHash).length == 0, "Credential already exists");
 
-        credentials[credentialHash] = Credential(credentialHash, visaID, validUntil, "", issuerDID, true);
-        credentialHashes.push(credentialHash); // ✅ Fix: Store the hash
+        credentials[vcHash] = Credential({
+            txHash: txHash,
+            issuerDID: "did:dev:969535dbe772594c5adc6155ce26a9eb",
+            holderDID: "",
+            vcHash: vcHash,
+            proof: Proof(signature, issuedAt, expiresAt),
+            ipfsCID: ipfsCID,
+            status: "unclaimed"
+        });
+
+        credentialHashes.push(vcHash);
     }
 
-    function updateApplicantDID(bytes32 credentialHash, string memory applicantDID) public {
-        require(credentials[credentialHash].issued, "Credential not found");
-        require(bytes(credentials[credentialHash].applicantDID).length == 0, "DID already set");
-        credentials[credentialHash].applicantDID = applicantDID;
+    // Assign holder DID to an issued credential
+    function claimCredential(string memory vcHash, string memory holderDID) public {
+        require(bytes(credentials[vcHash].vcHash).length > 0, "Credential not found");
+        require(bytes(credentials[vcHash].holderDID).length == 0, "Already claimed");
+
+        credentials[vcHash].holderDID = holderDID;
+        credentials[vcHash].status = "claimed";
     }
 
-    function verifyCredential(bytes32 credentialHash) public view returns (bool) {
-        return credentials[credentialHash].issued;
+    // Verify if a credential exists and return its status
+    function verifyCredential(string memory vcHash) public view returns (bool, string memory) {
+        if (bytes(credentials[vcHash].vcHash).length > 0) {
+            return (true, credentials[vcHash].status);
+        }
+        return (false, "Credential not found");
     }
 
-    function getAllCredentials() public view returns (bytes32[] memory) {
-        return credentialHashes; // ✅ Now returns stored credential hashes
-    }
-
-    function getCredentialDetails(bytes32 credentialHash) public view returns (
-        string memory visaID,
-        string memory validUntil,
-        string memory applicantDID,
+    // Fetch a specific credential’s details
+    function getCredentialDetails(string memory vcHash) public view returns (
+        string memory txHash,
         string memory issuerDID,
-        bool issued
+        string memory holderDID,
+        string memory ipfsCID,
+        string memory status,
+        string memory signature,
+        string memory issuedAt,
+        string memory expiresAt
     ) {
-        Credential memory cred = credentials[credentialHash];
-        return (cred.visaID, cred.validUntil, cred.applicantDID, cred.issuerDID, cred.issued);
+        require(bytes(credentials[vcHash].vcHash).length > 0, "Credential not found");
+
+        Credential memory cred = credentials[vcHash];
+
+        return (
+            cred.txHash,
+            cred.issuerDID,
+            cred.holderDID,
+            cred.ipfsCID,
+            cred.status,
+            cred.proof.signature,
+            cred.proof.issuedAt,
+            cred.proof.expiresAt
+        );
+    }
+
+    // Fetch all credential hashes
+    function getAllCredentialHashes() public view returns (string[] memory) {
+        return credentialHashes;
     }
 }

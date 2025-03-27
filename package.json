@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider node dist/server.js",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon src/server.ts",
     "build": "tsc"
   },
   "keywords": [],
@@ -12,11 +12,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@pinata/sdk": "^2.1.0",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
+    "cross-env": "^7.0.3",
     "express": "^4.21.2",
+    "ipfs-http-client": "^50.1.2",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.14.1"
+    "pg": "^8.14.1",
+    "pinata": "^2.1.0"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.8",
