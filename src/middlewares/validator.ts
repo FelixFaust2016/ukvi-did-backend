@@ -24,6 +24,7 @@ export const nameValidator = Joi.object({
 });
 
 export const credentialValidator = Joi.object({
+  visaType: Joi.string().required(),
   visaID: Joi.string().required().min(5).max(60),
   firstName: Joi.string().required().min(3).max(60),
   lastName: Joi.string().required().min(3).max(60),

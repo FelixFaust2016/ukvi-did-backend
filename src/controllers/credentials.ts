@@ -12,7 +12,7 @@ import crypto from "crypto";
 import axios from "axios";
 import FormData from "form-data";
 import stream from "stream";
-import pinataSDK  from "@pinata/sdk";
+import pinataSDK from "@pinata/sdk";
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not defined in the .env file");
@@ -34,7 +34,10 @@ const contract = new ethers.Contract(
   wallet
 );
 
-const pinata = new pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_SECRET);
+const pinata = new pinataSDK(
+  process.env.PINATA_API_KEY,
+  process.env.PINATA_SECRET
+);
 
 // Function to Encrypt Data with Public Key
 const encryptWithPublicKey = (publicKey: string, data: string) => {
@@ -54,20 +57,12 @@ const encryptWithPublicKey = (publicKey: string, data: string) => {
   };
 };
 
-export const issueCredential = async (req: Request, res: Response, next: NextFunction) => {
+export const issueCredential = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const {
-      visaID,
-      firstName,
-      lastName,
-      dateOfBirth,
-      nationality,
-      passportNumber,
-      passportExpiryDate,
-      gender,
-      placeOfBirth,
-    } = req.body;
-
     // Validate request body
     const { error } = credentialValidator.validate(req.body);
     if (error) {
@@ -120,7 +115,7 @@ export const issueCredential = async (req: Request, res: Response, next: NextFun
       });
 
       const ipfsCID = pinataResponse.IpfsHash; // Retrieve the IPFS CID (hash)
-      
+
       console.log("File pinned to IPFS with CID:", ipfsCID);
 
       // Compute 32-byte hash for credential
@@ -149,7 +144,9 @@ export const issueCredential = async (req: Request, res: Response, next: NextFun
         await tx.wait();
       } catch (err) {
         console.error("Blockchain transaction failed:", err);
-        res.status(500).json({ status: "failed", msg: "Blockchain transaction failed" });
+        res
+          .status(500)
+          .json({ status: "failed", msg: "Blockchain transaction failed" });
         return;
       }
 
@@ -166,7 +163,9 @@ export const issueCredential = async (req: Request, res: Response, next: NextFun
       });
     } catch (err) {
       console.error("IPFS Upload to Pinata failed:", err);
-      res.status(500).json({ status: "failed", msg: "Failed to upload to IPFS" });
+      res
+        .status(500)
+        .json({ status: "failed", msg: "Failed to upload to IPFS" });
     }
   } catch (error) {
     next(error);

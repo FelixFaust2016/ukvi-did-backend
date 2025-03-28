@@ -1,9 +1,12 @@
 import express, { Request, Response } from "express";
+import cors from "cors";
 import userRoutes from "./routes/users";
-import credentialRoutes from "./routes/credentials"
+import credentialRoutes from "./routes/credentials";
 import db from "./dbConfig";
 
 const app = express();
+app.use(cors());
+
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
@@ -15,7 +18,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/credential", credentialRoutes);
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);
