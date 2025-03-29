@@ -65,6 +65,12 @@ contract VisaCredentialRegistry {
         credentials[vcHash].status = "claimed";
     }
 
+    // Revoke a credential
+    function revokeCredential(string memory vcHash) public onlyIssuer {
+        require(bytes(credentials[vcHash].vcHash).length > 0, "Credential not found");
+        credentials[vcHash].status = "revoked";
+    }
+
     // Verify if a credential exists and return its status
     function verifyCredential(string memory vcHash) public view returns (bool, string memory) {
         if (bytes(credentials[vcHash].vcHash).length > 0) {
@@ -103,5 +109,22 @@ contract VisaCredentialRegistry {
     // Fetch all credential hashes
     function getAllCredentialHashes() public view returns (string[] memory) {
         return credentialHashes;
+    }
+
+    // Fetch all credentials by status
+    function getCredentialsByStatus(string memory status) public view returns (string[] memory) {
+        string[] memory filteredHashes = new string[](credentialHashes.length);
+        uint count = 0;
+
+        for (uint i = 0; i < credentialHashes.length; i++) {
+            if (keccak256(abi.encodePacked(credentials[credentialHashes[i]].status)) == keccak256(abi.encodePacked(status))) {
+                filteredHashes[count] = credentialHashes[i];
+                count++;
+            }
+        }
+
+        // Resize the array to fit the actual number of results
+        assembly { mstore(filteredHashes, count) }
+        return filteredHashes;
     }
 }

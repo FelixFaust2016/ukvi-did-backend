@@ -3,6 +3,7 @@ import {
   addUserValidator,
   signInValidator,
   nameValidator,
+  updateUserValidator,
 } from "../middlewares/validator";
 import jwt from "jsonwebtoken";
 import db from "../dbConfig";
@@ -100,6 +101,87 @@ export const addUser = async (
       msg: "User created successfully",
       user: newUser,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const getUsersQuery = `SELECT * FROM users`;
+
+    const getUsersResult = await db.query(getUsersQuery);
+
+    res
+      .status(200)
+      .json({ msg: "Fetched Successfully", data: getUsersResult.rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  const { id } = req.params;
+
+  const { name, email } = req.body;
+  try {
+    const { error, value } = updateUserValidator.validate({
+      name,
+      email,
+    });
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ status: "failed", msg: error.details[0].message });
+    }
+
+    const updateUserQuery = `UPDATE users SET name=$2, email=$3 WHERE id = $1 RETURNING *`;
+    const updateUserResult = await db.query(updateUserQuery, [id, name, email]);
+
+    if (updateUserResult.rows.length === 0) {
+      return res
+        .status(400)
+        .json({ status: "failed", msg: "This user does not exist" });
+    }
+
+    return res
+      .status(200)
+      .json({ msg: "Updated Successfully", data: updateUserResult.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  const { id } = req.params;
+
+  try {
+    const deleteQuery = `DELETE FROM users WHERE id = $1 RETURNING *`;
+
+    const deleteQueryResult = await db.query(deleteQuery, [id]);
+
+    if (deleteQueryResult.rows.length === 0) {
+      return res
+        .status(400)
+        .json({ status: "failed", msg: "This user does not exist" });
+    }
+
+    return res
+      .status(200)
+      .json({ msg: "Deleted Successfully", data: deleteQueryResult.rows[0] });
   } catch (error) {
     next(error);
   }

@@ -10,6 +10,15 @@ export const addUserValidator = Joi.object({
   password: Joi.string().required().min(8),
 });
 
+export const updateUserValidator = Joi.object({
+  name: Joi.string().required().min(5).max(60),
+  email: Joi.string()
+    .required()
+    .min(5)
+    .max(60)
+    .email({ tlds: { allow: ["com", "net"] } }),
+});
+
 export const signInValidator = Joi.object({
   email: Joi.string()
     .required()
@@ -24,6 +33,7 @@ export const nameValidator = Joi.object({
 });
 
 export const credentialValidator = Joi.object({
+  image: Joi.string().required().min(3),
   visaType: Joi.string().required(),
   visaID: Joi.string().required().min(5).max(60),
   firstName: Joi.string().required().min(3).max(60),

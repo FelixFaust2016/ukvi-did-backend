@@ -237,3 +237,38 @@ export const getCredentials = async (req: Request, res: Response) => {
       .json({ status: "error", message: "Failed to fetch credentials" });
   }
 };
+
+export const revokeCredential = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    try {
+      const { vcHash } = req.body;
+
+      if (!vcHash) {
+        return res
+          .status(400)
+          .json({ success: false, message: "vcHash is required" });
+      }
+
+      const tx = await contract.revokeCredential(vcHash);
+      await tx.wait(); // Wait for transaction confirmation
+
+      res.json({
+        success: true,
+        message: "Credential revoked",
+        txHash: tx.hash,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error revoking credential",
+        error: (error as Error).message,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
