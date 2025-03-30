@@ -112,7 +112,7 @@ export const getUsers = async (
   next: NextFunction
 ) => {
   try {
-    const getUsersQuery = `SELECT * FROM users`;
+    const getUsersQuery = `SELECT id, name, email FROM users`;
 
     const getUsersResult = await db.query(getUsersQuery);
 
