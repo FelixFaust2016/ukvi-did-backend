@@ -264,7 +264,7 @@ export const revokeCredential = async (
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error revoking credential",
+        msg: "Error revoking credential",
         error: (error as Error).message,
       });
     }

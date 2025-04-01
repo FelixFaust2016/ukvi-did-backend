@@ -11,6 +11,6 @@ const router: Router = express.Router();
 router.post("/issue_credential", issueCredential);
 router.post("/verify_credential", verifyCredential);
 router.get("/get_credentials", getCredentials);
-router.put("/revoke_credential", revokeCredential);   
+router.post("/revoke_credential", revokeCredential);   
 
 export default router;
