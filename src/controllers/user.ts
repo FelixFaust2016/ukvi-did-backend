@@ -193,6 +193,10 @@ export const signIn = async (
   next: NextFunction
 ) => {
   const { email, password } = req.body;
+  
+  console.log("hello");
+  
+
   try {
     const { error, value } = signInValidator.validate({
       email,
