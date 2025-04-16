@@ -30,7 +30,7 @@ export const addApplicant = async (
       res.status(400).json({ status: "failed", msg: "did already exists" });
     }
 
-    const insterApplicantQuery = `INSERT INTO users (did,
+    const insterApplicantQuery = `INSERT INTO applicants (did,
       firstname,
       lastname,
       middlename,
@@ -50,7 +50,7 @@ export const addApplicant = async (
 
     res.status(201).json({
       status: "success",
-      msg: "User created successfully",
+      msg: "Applicant saved successfully",
       user: newApplicant,
     });
   } catch (error) {
@@ -66,7 +66,7 @@ export const deleteApplicant = async (
   const { id } = req.params;
 
   try {
-    const deleteQuery = `DELETE FROM users WHERE id = $1 RETURNING *`;
+    const deleteQuery = `DELETE FROM applicants WHERE id = $1 RETURNING *`;
 
     const deleteQueryResult = await db.query(deleteQuery, [id]);
 

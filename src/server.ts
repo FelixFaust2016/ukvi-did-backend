@@ -22,6 +22,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/credential", credentialRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/applicants", applicantRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);
