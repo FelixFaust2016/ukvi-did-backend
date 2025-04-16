@@ -95,7 +95,7 @@ export const issueCredential = async (
     const encryptedVC = encryptWithPublicKey(
       publicKey,
       JSON.stringify(verifiableCredential)
-    );
+    ); 
 
     // 🌐 Upload to Pinata IPFS
     try {

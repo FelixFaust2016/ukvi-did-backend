@@ -3,6 +3,7 @@ import cors from "cors";
 import userRoutes from "./routes/users";
 import credentialRoutes from "./routes/credentials";
 import dashboardRoutes from "./routes/dashboard";
+import applicantRoutes from "./routes/applicants";
 
 import db from "./dbConfig";
 

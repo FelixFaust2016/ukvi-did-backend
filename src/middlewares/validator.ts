@@ -45,3 +45,12 @@ export const credentialValidator = Joi.object({
   gender: Joi.string().required(),
   placeOfBirth: Joi.string().required(),
 });
+
+export const applicantValidator = Joi.object({
+  did: Joi.string().required().min(3).max(60),
+  firstname: Joi.string().required().min(3).max(60),
+  lastname: Joi.string().required().min(3).max(60),
+  middlename: Joi.string().required().min(3).max(60),
+  image: Joi.string().required().min(3),
+  publickey: Joi.string().required().min(3).max(60),
+});
