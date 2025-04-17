@@ -5,7 +5,7 @@ import db from "../dbConfig";
 import { vcBuilder } from "../utils/vcBuilder";
 import { verifyCredentialJWT } from "../utils/verifyHSM";
 import { computeCredentialHash } from "../utils/computeCredentialHash";
-import contractABI from "../../artifacts/contracts/visaCredential.sol/VisaCredentialRegistry.json";
+import contractABI from "../../artifacts/contracts/visaCredentialContract.sol/VisaCredentialContractRegistry.json";
 import { ethers } from "ethers";
 import { create } from "ipfs-http-client";
 import crypto from "crypto";
@@ -33,6 +33,7 @@ const contract = new ethers.Contract(
   contractABI.abi,
   wallet
 );
+
 
 const pinata = new pinataSDK(
   process.env.PINATA_API_KEY,
@@ -62,6 +63,8 @@ export const issueCredential = async (
   res: Response,
   next: NextFunction
 ) => {
+  const { subjectDid } = req.body;
+
   try {
     // Validate request body
     const { error } = credentialValidator.validate(req.body);
@@ -69,6 +72,14 @@ export const issueCredential = async (
       res.status(400).json({ status: "failed", msg: error.details[0].message });
       return;
     }
+
+    //get public key using subjectDID
+    const getSubjectPuplicKey = await db.query(
+      "SELECT publicKey FROM applicants WHERE did = $1",
+      [subjectDid]
+    );
+
+    const subjectPublicKey = getSubjectPuplicKey.rows[0].publickey;
 
     // Fetch private key from database
     const getPrivateKeyQuery = `SELECT keys FROM immigration`;
@@ -84,7 +95,7 @@ export const issueCredential = async (
 
     // Create Verifiable Credential
     const verifiableCredential = vcBuilder(
-      publicKey,
+      subjectDid,
       Object.keys(req.body),
       serviceEndpoint,
       req.body,
@@ -93,9 +104,9 @@ export const issueCredential = async (
 
     // 🔐 Encrypt the VC before storing it on IPFS
     const encryptedVC = encryptWithPublicKey(
-      publicKey,
+      subjectPublicKey,
       JSON.stringify(verifiableCredential)
-    ); 
+    );
 
     // 🌐 Upload to Pinata IPFS
     try {
@@ -136,12 +147,23 @@ export const issueCredential = async (
         const tx = await contract.issueCredential(
           txHash,
           credentialHash,
-          signature,
+          ipfsCID,
+          "did:dev:969535dbe772594c5adc6155ce26a9eb",
+          publicKey,
           issuedAt,
-          expiresAt,
-          ipfsCID
+          expiresAt
         );
         await tx.wait();
+
+        //update txh of applicant
+        const updateApplicantQuery = `UPDATE applicants SET txh=$2 WHERE did = $1 RETURNING *`;
+        const updateApplicantResult = await db.query(updateApplicantQuery, [
+          subjectDid,
+          txHash,
+        ]);
+        console.log("====================================");
+        console.log(updateApplicantResult.rows[0]);
+        console.log("====================================");
       } catch (err) {
         console.error("Blockchain transaction failed:", err);
         res
@@ -202,28 +224,26 @@ export const getCredentials = async (req: Request, res: Response) => {
         // Retrieve detailed information about each credential
         const [
           txHash,
-          issuerDID,
-          holderDID,
+          vcHash,
           ipfsCID,
-          status,
-          signature,
+          issuerDID,
+          issuerPublicKey,
           issuedAt,
           expiresAt,
+          status
         ] = await contract.getCredentialDetails(hash);
 
         // Return the credential object with all the relevant fields
         return {
           credentialHash: hash,
           txHash,
-          issuerDID,
-          holderDID,
+          vcHash,
           ipfsCID,
-          status,
-          proof: {
-            signature,
-            issuedAt,
-            expiresAt,
-          },
+          issuerDID,
+          issuerPublicKey,
+          issuedAt,
+          expiresAt,
+          status
         };
       })
     );

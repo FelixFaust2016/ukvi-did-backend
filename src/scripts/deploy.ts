@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 
 async function main() {
     // Get contract factory
-    const VisaCredential = await ethers.getContractFactory("VisaCredentialRegistry");
+    const VisaCredential = await ethers.getContractFactory("VisaCredentialContractRegistry");
 
     // Deploy contract
     const visaContract = await VisaCredential.deploy();

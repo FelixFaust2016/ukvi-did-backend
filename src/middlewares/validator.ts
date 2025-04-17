@@ -33,10 +33,12 @@ export const nameValidator = Joi.object({
 });
 
 export const credentialValidator = Joi.object({
+  subjectDid: Joi.string().required().min(3),
   image: Joi.string().required().min(3),
   visaType: Joi.string().required(),
   visaID: Joi.string().required().min(5).max(60),
   firstName: Joi.string().required().min(3).max(60),
+  middleName: Joi.string().required().min(3).max(60),
   lastName: Joi.string().required().min(3).max(60),
   dateOfBirth: Joi.string().required(),
   nationality: Joi.string().required(),
@@ -52,5 +54,9 @@ export const applicantValidator = Joi.object({
   lastname: Joi.string().required().min(3).max(60),
   middlename: Joi.string().required().min(3).max(60),
   image: Joi.string().required().min(3),
-  publickey: Joi.string().required().min(3).max(60),
+  publickey: Joi.string().required().min(3),
+});
+
+export const transactionHashValidator = Joi.object({
+  txh: Joi.string().required().min(3),
 });

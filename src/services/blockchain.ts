@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import contractABI from "../../artifacts/contracts/visaCredential.sol/VisaCredentialRegistry.json";
+import contractABI from "../../artifacts/contracts/visaCredentialContract.sol/VisaCredentialContractRegistry.json";
 import dotenv from "dotenv";
 
 dotenv.config();

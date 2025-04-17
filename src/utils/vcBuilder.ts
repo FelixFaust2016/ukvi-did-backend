@@ -1,44 +1,34 @@
 export const vcBuilder = (
-  publicKey: string,
+  subjectDid: string,
   scope: string[],
   serviceEndpoint: string,
   data: Record<string, any>,
   signature: string
 ) => {
-  const credentials = {
+  const now = new Date().toISOString();
+
+  const issuerDid = "did:dev:969535dbe772594c5adc6155ce26a9eb"
+
+  return {
     "@context": [
-      "https://www.w3.org/ns/did/v1",
-      "https://w3id.org/security/v1",
-      "https://ukvi.uk.gov.eu",
+      "https://www.w3.org/2018/credentials/v1",
+      "https://w3id.org/security/suites/secp256k1-2019/v1",
+      "https://ukvi.uk.gov.eu"
     ],
-    id: "did:dev:969535dbe772594c5adc6155ce26a9eb",
-    publicKey: publicKey,
-    authentication: [`did:dev:969535dbe772594c5adc6155ce26a9eb#keys-1`],
-    assertionMethod: [
-      {
-        id: `did:dev:969535dbe772594c5adc6155ce26a9eb#assertionMethod-1`,
-        scope: scope,
-        verificationMethod: `did:dev:969535dbe772594c5adc6155ce26a9eb#keys-1`,
-      },
-    ],
-    service: [
-      {
-        id: `did:dev:969535dbe772594c5adc6155ce26a9eb#id-1`,
-        type: "IdentityVerification",
-        serviceEndpoint: serviceEndpoint,
-      },
-    ],
-    alsoKnownAs: data.email,
-    userInfo: data,
-    controller: [],
-    created: new Date().toISOString(),
-    updated: new Date().toISOString(),
+    id: `urn:uuid:${crypto.randomUUID()}`,
+    type: ["VerifiableCredential", ...scope],
+    issuer: issuerDid,
+    issuanceDate: now,
+    credentialSubject: {
+      did: subjectDid,
+      ...data
+    },
     proof: {
       type: "EcdsaSecp256k1VerificationKey2019",
-      created: new Date().toISOString(),
-      proofValue: signature,
-    },
+      created: now,
+      proofPurpose: "assertionMethod",
+      verificationMethod: `${issuerDid}#keys-1`,
+      proofValue: signature
+    }
   };
-
-  return credentials;
 };

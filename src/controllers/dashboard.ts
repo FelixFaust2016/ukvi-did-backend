@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from "express";
-import contractABI from "../../artifacts/contracts/visaCredential.sol/VisaCredentialRegistry.json";
+import contractABI from "../../artifacts/contracts/visaCredentialContract.sol/VisaCredentialContractRegistry.json";
 import { ethers } from "ethers";
 
 if (!process.env.PRIVATE_KEY) {

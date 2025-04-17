@@ -1,12 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import { applicantValidator } from "../middlewares/validator";
+import {
+  applicantValidator,
+  transactionHashValidator,
+} from "../middlewares/validator";
 import db from "../dbConfig";
 
 export const addApplicant = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<any> => {
   const { did, firstname, lastname, middlename, image, publickey } = req.body;
   try {
     const { error, value } = applicantValidator.validate({
@@ -19,7 +22,9 @@ export const addApplicant = async (
     });
 
     if (error) {
-      res.status(400).json({ status: "failed", msg: error.details[0].message });
+      return res
+        .status(400)
+        .json({ status: "failed", msg: error.details[0].message });
     }
 
     const checkDidQuery = `SELECT * FROM applicants WHERE did = $1`;
@@ -27,7 +32,9 @@ export const addApplicant = async (
     const doesDIDExist = await db.query(checkDidQuery, [did]);
 
     if (doesDIDExist.rows.length > 0) {
-      res.status(400).json({ status: "failed", msg: "did already exists" });
+      return res
+        .status(400)
+        .json({ status: "failed", msg: "did already exists" });
     }
 
     const insterApplicantQuery = `INSERT INTO applicants (did,
@@ -48,10 +55,10 @@ export const addApplicant = async (
 
     const newApplicant = insertApplicant.rows[0];
 
-    res.status(201).json({
+    return res.status(201).json({
       status: "success",
       msg: "Applicant saved successfully",
-      user: newApplicant,
+      applicant: newApplicant,
     });
   } catch (error) {
     next(error);
@@ -79,6 +86,24 @@ export const deleteApplicant = async (
     return res
       .status(200)
       .json({ msg: "Deleted Successfully", data: deleteQueryResult.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getApplicants = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const getApplicantQuery = `SELECT * FROM applicants`;
+
+    const getApplicantResult = await db.query(getApplicantQuery);
+
+    return res
+      .status(200)
+      .json({ msg: "Fetched Successfully", data: getApplicantResult.rows });
   } catch (error) {
     next(error);
   }
