@@ -4,15 +4,11 @@ import { signWithHSM } from "../utils/signwithHSM";
 import db from "../dbConfig";
 import { vcBuilder } from "../utils/vcBuilder";
 import { verifyCredentialJWT } from "../utils/verifyHSM";
-import { computeCredentialHash } from "../utils/computeCredentialHash";
 import contractABI from "../../artifacts/contracts/visaCredentialContract.sol/VisaCredentialContractRegistry.json";
 import { ethers } from "ethers";
-import { create } from "ipfs-http-client";
-import crypto from "crypto";
-import axios from "axios";
-import FormData from "form-data";
 import stream from "stream";
 import pinataSDK from "@pinata/sdk";
+import { encryptWithPublicKey } from "../utils/encryptWithPublicKey";
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not defined in the .env file");
@@ -34,29 +30,12 @@ const contract = new ethers.Contract(
   wallet
 );
 
-
 const pinata = new pinataSDK(
   process.env.PINATA_API_KEY,
   process.env.PINATA_SECRET
 );
 
 // Function to Encrypt Data with Public Key
-const encryptWithPublicKey = (publicKey: string, data: string) => {
-  const key = crypto.createHash("sha256").update(publicKey).digest(); // Derive a symmetric key from the public key
-  const iv = crypto.randomBytes(12); // Generate a random IV (Initialization Vector)
-
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  let encrypted = cipher.update(data, "utf8", "base64");
-  encrypted += cipher.final("base64");
-
-  const authTag = cipher.getAuthTag(); // Get authentication tag for integrity
-
-  return {
-    iv: iv.toString("base64"),
-    encryptedData: encrypted,
-    authTag: authTag.toString("base64"),
-  };
-};
 
 export const issueCredential = async (
   req: Request,
@@ -93,6 +72,7 @@ export const issueCredential = async (
     // Generate signature & JWT
     const { signature, credentialJWT } = signWithHSM(privateKey, req.body);
 
+    
     // Create Verifiable Credential
     const verifiableCredential = vcBuilder(
       subjectDid,
@@ -104,9 +84,14 @@ export const issueCredential = async (
 
     // 🔐 Encrypt the VC before storing it on IPFS
     const encryptedVC = encryptWithPublicKey(
-      subjectPublicKey,
-      JSON.stringify(verifiableCredential)
+      JSON.stringify(verifiableCredential),
+      subjectPublicKey
     );
+
+    console.log("hdhdhdhdhje.");
+    console.log("====================================");
+    console.log(encryptedVC);
+    console.log("====================================");
 
     // 🌐 Upload to Pinata IPFS
     try {
@@ -118,10 +103,10 @@ export const issueCredential = async (
       // Pin the file to Pinata
       const pinataResponse = await pinata.pinFileToIPFS(bufferStream, {
         pinataMetadata: {
-          name: "verifiable-credential", // Customize the name of your file
+          name: `vc-${Date.now()}.json`, // Customize the name of your file
         },
         pinataOptions: {
-          cidVersion: 0, // Use the IPFS v0 CID version
+          cidVersion: 1, // Use the IPFS v0 CID version
         },
       });
 
@@ -230,7 +215,7 @@ export const getCredentials = async (req: Request, res: Response) => {
           issuerPublicKey,
           issuedAt,
           expiresAt,
-          status
+          status,
         ] = await contract.getCredentialDetails(hash);
 
         // Return the credential object with all the relevant fields
@@ -243,7 +228,7 @@ export const getCredentials = async (req: Request, res: Response) => {
           issuerPublicKey,
           issuedAt,
           expiresAt,
-          status
+          status,
         };
       })
     );

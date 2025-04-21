@@ -49,7 +49,7 @@ export const credentialValidator = Joi.object({
 });
 
 export const applicantValidator = Joi.object({
-  did: Joi.string().required().min(3).max(60),
+  did: Joi.string().required().min(3),
   firstname: Joi.string().required().min(3).max(60),
   lastname: Joi.string().required().min(3).max(60),
   middlename: Joi.string().required().min(3).max(60),
