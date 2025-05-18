@@ -82,7 +82,6 @@ export const issueCredential = async (
       signature
     );
 
-    // 🔐 Encrypt the VC before storing it on IPFS
     const encryptedVC = encryptWithPublicKey(
       JSON.stringify(verifiableCredential),
       subjectPublicKey
